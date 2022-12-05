@@ -25,7 +25,13 @@ func (l *Lexer) NextToken() token.Token{
 
 	switch l.r {
 	case '=':
-		tok = newToken(token.ASSIGN, l.r)
+		if l.peekChar() == '=' {
+			r := l.r
+			l.readChar()
+			tok = token.Token{Type: token.EQ, Literal: string(r)+string(l.r)}
+		} else {
+			tok = newToken(token.ASSIGN, l.r)
+		}
 	case '+':
 		tok = newToken(token.PLUS, l.r)
 	case ';':
@@ -40,6 +46,24 @@ func (l *Lexer) NextToken() token.Token{
 		tok = newToken(token.LBRACE, l.r)
 	case '}':
 		tok = newToken(token.RBRACE, l.r)
+	case '>':
+		tok = newToken(token.GT, l.r)
+	case '!':
+		if l.peekChar() == '=' {
+			r := l.r
+			l.readChar()
+			tok = token.Token{Type: token.NOT_EQ, Literal: string(r)+string(l.r)}
+		} else {
+			tok = newToken(token.BANG, l.r)
+		}
+	case '*':
+		tok = newToken(token.ASTERISK, l.r)
+	case '<':
+		tok = newToken(token.LT, l.r)
+	case '-':
+		tok = newToken(token.MINUS, l.r)
+	case '/':
+		tok = newToken(token.SLASH, l.r)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -103,5 +127,14 @@ func (l *Lexer) readChar() {
 		l.position = l.readPosition
 		l.readPosition += width
 		l.r = runeValue
+	}
+}
+
+func (l *Lexer) peekChar() rune {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		r, _ := utf8.DecodeRuneInString(l.input[l.readPosition:])
+		return r
 	}
 }
