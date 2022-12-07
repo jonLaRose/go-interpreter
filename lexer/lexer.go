@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"unicode/utf8"
+
 	"github.com/jonLaRose/go-interpreter/token"
 )
 
@@ -121,6 +122,7 @@ func newToken(tokenType token.TokenType, r rune) token.Token {
 
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
+		l.position = l.readPosition
 		l.r = 0
 	} else {
 		runeValue, width := utf8.DecodeRuneInString(l.input[l.readPosition:])
