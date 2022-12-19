@@ -28,6 +28,7 @@ func (p *Program) TokenLiteral() string {
 	}
 }
 
+// the Identifier struct contains the token of the identifier along with its value. The Value is basically token.Token.Literal only that it's easier to grab.
 type Identifier struct { 
 	Token token.Token // the token.IDENT token
 	Value string
