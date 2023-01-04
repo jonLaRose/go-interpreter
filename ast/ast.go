@@ -51,6 +51,7 @@ func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
 }
 func (i *Identifier) expressionNode() {} // This is because in some other parts of the Monkey language Identifiers do produce values (like a function)
+func (i *Identifier) String() string { return i.Value }
 
 type LetStatement struct {
 	Token token.Token // the token.LET token
