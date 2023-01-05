@@ -13,6 +13,17 @@ type (
 	infixParseFn func(ast.Expression) ast.Expression // The ast.Expression parameter is the "left side" of the infix operator being parsed...
 )
 
+const (
+	_ int = iota // The iota here is important because we want to set a precedence to the operations! 
+	LOWEST
+	EQUALS	// ==
+	LESSGREATER // < or >
+	SUM			// +
+	PRODUCT		// *
+	PREFIX		// -X or !X
+	CALL 		// myfunction(X)
+)
+
 type Parser struct {
 	l *lexer.Lexer
 
@@ -30,11 +41,15 @@ func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l: l,
 		errors: []error{},
+		prefixParseFns: make(map[token.TokenType]prefixParseFn),
+		infixParseFns: make(map[token.TokenType]infixParseFn),
 	}
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 
 	// Set both 'curToken' and 'peekToken'
 	p.nextToken()
 	p.nextToken()
+
 
 	return p
 }
@@ -69,6 +84,8 @@ func (p *Parser) parseStatement() ast.Statement{
 		return p.parseLetStatement()
 	case token.RETURN:
 		return p.parseReturnStatement()
+	case token.IDENT:
+		return p.parseExpressionStatement()
 	default:
 		return nil
 	}
@@ -106,6 +123,31 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	}
 
 	return stmt;
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	expr := p.parseExpression(LOWEST)
+	stmt := &ast.ExpressionStatement{Token: p.curToken, Expression: expr}
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		return nil
+	}
+	leftExp := prefix()
+
+	return leftExp
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
